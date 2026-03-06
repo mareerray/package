@@ -1,50 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:note/note.dart'; // local package ../note
+import 'package:note/note.dart';
 
 String formatNoteDate(String isoString) {
   final dateTime = DateTime.parse(isoString);
   final now = DateTime.now();
-
-  final isSameDay =
-      dateTime.year == now.year &&
-      dateTime.month == now.month &&
-      dateTime.day == now.day;
-
-  if (isSameDay) {
-    return DateFormat.Hm().format(dateTime); // 14:38
-  } else {
-    return DateFormat('yyyy-MM-dd').format(dateTime); // 2026-03-04
-  }
+  final isSameDay = dateTime.year == now.year && dateTime.month == now.month && dateTime.day == now.day;
+  return isSameDay ? DateFormat.Hm().format(dateTime) : DateFormat('yyyy-MM-dd').format(dateTime);
 }
 
-void main() {
-  
-  runApp(const SecureNotesMiniApp());
-}
+void main() => runApp(const SecureNotesMiniApp());
 
 class SecureNotesMiniApp extends StatelessWidget {
   const SecureNotesMiniApp({super.key});
-
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Secure Notes Mini',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      home: const NotesListScreen(),
-    );
-  }
+  Widget build(BuildContext context) => MaterialApp(
+    title: 'Secure Notes Pro',
+    debugShowCheckedModeBanner: false,
+    theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo), useMaterial3: true),
+    home: NotesListScreen(),
+  );
 }
 
 class NotesListScreen extends StatefulWidget {
   const NotesListScreen({super.key});
-
-  @override
-  State<NotesListScreen> createState() => _NotesListScreenState();
+  @override State<NotesListScreen> createState() => _NotesListScreenState();
 }
 
 class _NotesListScreenState extends State<NotesListScreen> {
@@ -52,14 +33,13 @@ class _NotesListScreenState extends State<NotesListScreen> {
   List<Note> _notes = [];
   bool _isLoading = true;
 
-  @override
-  void initState() {
+  @override void initState() {
     super.initState();
     _init();
   }
 
   Future<void> _init() async {
-    await _db.database; // init database
+    await _db.database;
     await _loadNotes();
   }
 
@@ -72,12 +52,8 @@ class _NotesListScreenState extends State<NotesListScreen> {
   }
 
   Future<void> _addOrEditNote({Note? existing}) async {
-    final result = await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => EditNoteScreen(note: existing)));
-
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => EditNoteScreen(note: existing)));
     if (result == null) return;
-
     if (result == 'delete') {
       if (existing != null) {
         await _db.deleteNote(note: existing);
@@ -85,7 +61,6 @@ class _NotesListScreenState extends State<NotesListScreen> {
       }
       return;
     }
-
     if (result is Note) {
       if (existing == null) {
         await _db.addNote(note: result);
@@ -104,90 +79,196 @@ class _NotesListScreenState extends State<NotesListScreen> {
   Future<void> _confirmDeleteAll() async {
     final shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete all notes?'),
-        content: const Text('Do you want to remove all notes?'),
+      builder: (_) => AlertDialog(
+        title: const Text('Delete All Notes?'),
+        content: const Text('This cannot be undone.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete all'),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete All', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
+    if (shouldDelete == true) await _deleteAll();
+  }
 
-    if (shouldDelete == true) {
-      await _deleteAll();
-    }
+  void _onReorder(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) newIndex--;
+      final Note note = _notes.removeAt(oldIndex);
+      _notes.insert(newIndex, note);
+    });
+    // TODO: Save order to DB if position field added
   }
 
   @override
-  Widget build(BuildContext context) {
-  
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Secure Notes'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: _notes.isEmpty ? null : _confirmDeleteAll,
+  Widget build(BuildContext context) => Scaffold(
+    // extendBodyBehindAppBar: true,
+    appBar: AppBar(
+      title: Text('Secure Notes', style: GoogleFonts.pattaya(color: Colors.grey[900], fontSize: 30, fontWeight: FontWeight.bold)),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [const Color.fromARGB(255, 92, 185, 192), const Color.fromARGB(255, 40, 118, 147)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-        ],
+        ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _notes.isEmpty
-                ? const Center(child: Text('No notes yet'))
-                : ListView.builder(
-                    itemCount: _notes.length,
-                    itemBuilder: (context, index) {
-                      final note = _notes[index];
-                      return ListTile(
-                        title: Text(note.title),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              note.body,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              formatNoteDate(note.date),
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                        onTap: () => _addOrEditNote(existing: note),
-                      );
-                    },
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.delete_outline, color: Color(0xFFffffff),),
+          tooltip: 'Delete All',
+          onPressed: _notes.isEmpty ? null : _confirmDeleteAll,
+        ),
+      ],
+    ),
+    body: Stack(
+      children: [
+        // 1. Background image (bottom)
+        Positioned.fill(
+          child: Container(
+            padding: const EdgeInsets.only(bottom: 50),
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/bg_app.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+        ),
+        // 2. Overlay gradient (middle)
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha:0.4),  
+                  Colors.black.withValues(alpha:0.6),
+                ],
+              ),
+            ),
+          ),
+        ),
+        // 3. Content (top - visible!)
+        SafeArea(
+          child: Column(children: [
+            Expanded(child: _buildNotesList()),
+          ]),
+        ),
+      ],
+    ),
+    // Dark overlay
+    floatingActionButton: FloatingActionButton(
+      onPressed: () => _addOrEditNote(),
+      backgroundColor: const Color(0xFF32a4bb),
+      child: const Icon(Icons.add, color: Colors.white),
+    ),
+  );
+
+  Widget _buildNotesList() => _isLoading
+      ? const Center(child: CircularProgressIndicator())
+      : _notes.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.lightbulb_outline, size: 80, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text('No notes yet', style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: () => _addOrEditNote(),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Create First Note'),
                   ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _addOrEditNote(),
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
+                ],
+              ),
+            )
+          : ReorderableListView(
+              onReorder: _onReorder,
+              padding: const EdgeInsets.all(16),
+              children: _notes.map((note) => _buildNoteCard(note)).toList(),
+            );
 
-  @override
-  void dispose() {
-    _db.close();
-    super.dispose();
-  }
+  Widget _buildNoteCard(Note note) => Dismissible(
+    key: ValueKey(note.id),
+    direction: DismissDirection.endToStart,
+    background: Container(
+      decoration: BoxDecoration(color: Colors.red.shade400, borderRadius: BorderRadius.circular(12)),
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.only(right: 20),
+      child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+    ),
+    confirmDismiss: (_) async => await _confirmSingleDelete(note),
+    child: Card(
+      // elevation: 4,
+      color: Colors.white.withValues(alpha: 0.9),
+      margin: const EdgeInsets.only(bottom: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(8),
+        leading: const Icon(Icons.drag_indicator, color: Color(0xFF32a4bb)),
+        title: Text(note.title, style: GoogleFonts.inconsolata(fontWeight: FontWeight.bold, fontSize: 16)),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(note.body, maxLines: 2, overflow: TextOverflow.ellipsis, style:GoogleFonts.inconsolata(color: Colors.grey[800], fontSize: 14)),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
+                  const SizedBox(width: 4),
+                  Text(formatNoteDate(note.date), style: GoogleFonts.inconsolata(color: Colors.grey[600], fontSize: 12)),
+                ],
+              ),
+            ],
+          ),
+        ),
+        trailing: PopupMenuButton<IconData>(
+          icon: const Icon(Icons.more_vert),
+          color: Colors.white.withValues(alpha:0.9),  // ← background color
+          elevation: 8,
+          onSelected: (action) {
+            if (action == Icons.edit) _addOrEditNote(existing: note);
+            if (action == Icons.delete_outline) _confirmSingleDelete(note);
+          },
+          itemBuilder: (_) => [
+            PopupMenuItem(value: Icons.edit, child: Row(children: [Icon(Icons.edit), SizedBox(width: 12), Text('Edit')])),
+            PopupMenuItem(value: Icons.delete_outline, child: Row(children: [Icon(Icons.delete_outline, color: Colors.red), SizedBox(width: 12), Text('Delete', style: TextStyle(color: Colors.red))])),
+          ],
+        ),
+        onTap: () => _addOrEditNote(existing: note),
+      ),
+    ),
+  );
+
+  Future<bool?> _confirmSingleDelete(Note note) => showDialog<bool>(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text('Delete Note'),
+      content: Text('"${note.title}" will be deleted.'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Delete', style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    ),
+  );
 }
+
 
 class EditNoteScreen extends StatefulWidget {
   final Note? note;
@@ -253,7 +334,8 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit note' : 'Add note'),
+        backgroundColor: const Color(0xFF32a4bb),
+        title: Text(isEditing ? 'Edit note' : 'Add note', style: GoogleFonts.pattaya(color:  Colors.grey[900], fontSize: 26, fontWeight: FontWeight.bold)),
         actions: [
           if (isEditing)
             IconButton(
@@ -263,14 +345,14 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 100.0),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
+                decoration: InputDecoration(labelText: 'Title', labelStyle: GoogleFonts.inconsolata(fontSize: 18, fontWeight: FontWeight.bold)),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Title is required';
@@ -278,11 +360,11 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Expanded(
                 child: TextFormField(
                   controller: _bodyController,
-                  decoration: const InputDecoration(labelText: 'Body'),
+                  decoration: InputDecoration(labelText: 'Body', labelStyle: GoogleFonts.inconsolata(fontSize: 18, fontWeight: FontWeight.bold)),
                   maxLines: null,
                   expands: true,
                   keyboardType: TextInputType.multiline,
@@ -294,12 +376,16 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               SizedBox(
                 width: 200,
-                child: ElevatedButton(
-                  onPressed: _save,
-                  child: Text(isEditing ? 'Save changes' : 'Add note'),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF32a4bb)),
+                    onPressed: _save,
+                    child: Text(isEditing ? 'Save changes' : 'Add note', style: GoogleFonts.inconsolata(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[900])),
+                  ),
                 ),
               ),
             ],
@@ -314,91 +400,5 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     _titleController.dispose();
     _bodyController.dispose();
     super.dispose();
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
-    );
   }
 }
