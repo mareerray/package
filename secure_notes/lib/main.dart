@@ -10,10 +10,10 @@ String formatNoteDate(String isoString) {
   return isSameDay ? DateFormat.Hm().format(dateTime) : DateFormat('yyyy-MM-dd').format(dateTime);
 }
 
-void main() => runApp(const SecureNotesMiniApp());
+void main() => runApp(const SecureNotesApp());
 
-class SecureNotesMiniApp extends StatelessWidget {
-  const SecureNotesMiniApp({super.key});
+class SecureNotesApp extends StatelessWidget {
+  const SecureNotesApp({super.key});
   @override
   Widget build(BuildContext context) => MaterialApp(
     title: 'Secure Notes Pro',
@@ -108,7 +108,13 @@ class _NotesListScreenState extends State<NotesListScreen> {
   Widget build(BuildContext context) => Scaffold(
     // extendBodyBehindAppBar: true,
     appBar: AppBar(
-      title: Text('Secure Notes', style: GoogleFonts.pattaya(color: Colors.grey[900], fontSize: 30, fontWeight: FontWeight.bold)),
+      title: Row(
+          children: [
+            Icon(Icons.note_alt_outlined, color: Colors.grey[900], size: 30),
+            const SizedBox(width: 5),
+            Text('Secure Notes', style: GoogleFonts.pattaya(color: Colors.grey[900], fontSize: 30, fontWeight: FontWeight.bold)),
+          ],
+        ),
       backgroundColor: Colors.transparent,
       elevation: 0,
       flexibleSpace: Container(
@@ -150,8 +156,8 @@ class _NotesListScreenState extends State<NotesListScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withValues(alpha:0.4),  
-                  Colors.black.withValues(alpha:0.6),
+                  Colors.black.withValues(alpha:0.7),  
+                  Colors.black.withValues(alpha:0.9),
                 ],
               ),
             ),
@@ -173,6 +179,8 @@ class _NotesListScreenState extends State<NotesListScreen> {
     ),
   );
 
+  // ================ Build Notes List ================
+
   Widget _buildNotesList() => _isLoading
       ? const Center(child: CircularProgressIndicator())
       : _notes.isEmpty
@@ -180,15 +188,11 @@ class _NotesListScreenState extends State<NotesListScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.lightbulb_outline, size: 80, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text('No notes yet', style: Theme.of(context).textTheme.headlineSmall),
+                  Icon(Icons.list_outlined, size: 80, color: Colors.grey[400]),
+                  const SizedBox(height: 12),
+                  Text('No notes yet', style: GoogleFonts.inconsolata(fontSize: 28, color: Colors.grey[400])),
                   const SizedBox(height: 8),
-                  ElevatedButton.icon(
-                    onPressed: () => _addOrEditNote(),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Create First Note'),
-                  ),
+                  Text('Tap the + button to add your first note', style: GoogleFonts.inconsolata(fontSize: 16, color: Colors.grey[400])),
                 ],
               ),
             )
@@ -197,6 +201,8 @@ class _NotesListScreenState extends State<NotesListScreen> {
               padding: const EdgeInsets.all(16),
               children: _notes.map((note) => _buildNoteCard(note)).toList(),
             );
+
+  // ================ Build Individual Note ================
 
   Widget _buildNoteCard(Note note) => Dismissible(
     key: ValueKey(note.id),
@@ -268,6 +274,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
     ),
   );
 }
+
 
 
 class EditNoteScreen extends StatefulWidget {
@@ -380,7 +387,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
               SizedBox(
                 width: 200,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(2),
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF32a4bb)),
                     onPressed: _save,
