@@ -85,7 +85,8 @@ class _NotesListScreenState extends State<NotesListScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Delete All', style: TextStyle(color: Colors.white)),
           ),
@@ -109,12 +110,13 @@ class _NotesListScreenState extends State<NotesListScreen> {
     // extendBodyBehindAppBar: true,
     appBar: AppBar(
       title: Row(
-          children: [
-            Icon(Icons.note_alt_outlined, color: Colors.grey[900], size: 30),
-            const SizedBox(width: 5),
-            Text('Secure Notes', style: GoogleFonts.pattaya(color: Colors.grey[900], fontSize: 30, fontWeight: FontWeight.bold)),
-          ],
-        ),
+        children: [
+          Icon(Icons.note_alt_outlined, color: Colors.grey[800], size: 32, fontWeight: FontWeight.w900),
+          const SizedBox(width: 5),
+          Text('Secure Notes', 
+              style: GoogleFonts.pattaya(color: Colors.grey[800], fontSize: 30, fontWeight: FontWeight.bold)),
+        ],
+      ),
       backgroundColor: Colors.transparent,
       elevation: 0,
       flexibleSpace: Container(
@@ -128,10 +130,11 @@ class _NotesListScreenState extends State<NotesListScreen> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.delete_outline, color: Color(0xFFffffff),),
-          tooltip: 'Delete All',
+          icon: Icon(Icons.delete_sweep, color: Colors.grey[800], fontWeight: FontWeight.bold, size: 28),
+          tooltip: 'Delete All Notes',          
           onPressed: _notes.isEmpty ? null : _confirmDeleteAll,
         ),
+        SizedBox(width: 12),
       ],
     ),
     body: Stack(
@@ -142,7 +145,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
             padding: const EdgeInsets.only(bottom: 50),
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/bg_app.jpg'),
+                image: AssetImage('assets/images/bluebg.jpg'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -156,8 +159,8 @@ class _NotesListScreenState extends State<NotesListScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withValues(alpha:0.7),  
-                  Colors.black.withValues(alpha:0.9),
+                  Colors.black.withValues(alpha:0.4),  
+                  Colors.black.withValues(alpha:0.6),
                 ],
               ),
             ),
@@ -188,11 +191,15 @@ class _NotesListScreenState extends State<NotesListScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.list_outlined, size: 80, color: Colors.grey[400]),
-                  const SizedBox(height: 12),
-                  Text('No notes yet', style: GoogleFonts.inconsolata(fontSize: 28, color: Colors.grey[400])),
+                  Icon(Icons.lightbulb_outline, size: 80, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text('No notes yet', style: Theme.of(context).textTheme.headlineSmall),
                   const SizedBox(height: 8),
-                  Text('Tap the + button to add your first note', style: GoogleFonts.inconsolata(fontSize: 16, color: Colors.grey[400])),
+                  ElevatedButton.icon(
+                    onPressed: () => _addOrEditNote(),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Create First Note'),
+                  ),
                 ],
               ),
             )
@@ -216,7 +223,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
     confirmDismiss: (_) async => await _confirmSingleDelete(note),
     child: Card(
       // elevation: 4,
-      color: Colors.white.withValues(alpha: 0.9),
+      color: Colors.white.withValues(alpha: 0.8),
       margin: const EdgeInsets.only(bottom: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       child: ListTile(
@@ -242,7 +249,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
         ),
         trailing: PopupMenuButton<IconData>(
           icon: const Icon(Icons.more_vert),
-          color: Colors.white.withValues(alpha:0.9),  // ← background color
+          color: Colors.white.withValues(alpha:0.8),  // ← background color
           elevation: 8,
           onSelected: (action) {
             if (action == Icons.edit) _addOrEditNote(existing: note);
