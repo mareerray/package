@@ -5,6 +5,8 @@ This project refactors the Secure Notes app. It pulls out database and model log
 ## Project Structure
 The project has a core package and a Flutter app that uses it.
 
+![package](assets/images/package.png)
+
 ```
 ├── note/                       # Reusable Dart Package
 │   ├── lib/
