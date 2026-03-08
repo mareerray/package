@@ -159,8 +159,8 @@ class _NotesListScreenState extends State<NotesListScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withValues(alpha:0.4),  
-                  Colors.black.withValues(alpha:0.6),
+                  Colors.black.withValues(alpha:0.2),  
+                  Colors.black.withValues(alpha:0.1),
                 ],
               ),
             ),
@@ -191,16 +191,11 @@ class _NotesListScreenState extends State<NotesListScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.lightbulb_outline, size: 80, color: Colors.grey[400]),
+                  Icon(Icons.list_sharp, size: 80, color: Colors.grey[900]),
                   const SizedBox(height: 16),
-                  Text('No notes yet', style: Theme.of(context).textTheme.headlineSmall),
+                  Text('No notes yet', style: GoogleFonts.inconsolata(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.grey[900])),
                   const SizedBox(height: 8),
-                  ElevatedButton.icon(
-                    onPressed: () => _addOrEditNote(),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Create First Note'),
-                  ),
-                ],
+                  Text('Tap the + button to add your first note', style: GoogleFonts.inconsolata(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[900])),],
               ),
             )
           : ReorderableListView(
