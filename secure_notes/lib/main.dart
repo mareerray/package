@@ -85,7 +85,8 @@ class _NotesListScreenState extends State<NotesListScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Delete All', style: TextStyle(color: Colors.white)),
           ),
@@ -108,7 +109,14 @@ class _NotesListScreenState extends State<NotesListScreen> {
   Widget build(BuildContext context) => Scaffold(
     // extendBodyBehindAppBar: true,
     appBar: AppBar(
-      title: Text('Secure Notes', style: GoogleFonts.pattaya(color: Colors.grey[900], fontSize: 30, fontWeight: FontWeight.bold)),
+      title: Row(
+        children: [
+          Icon(Icons.note_alt_outlined, color: Colors.grey[800], size: 32, fontWeight: FontWeight.w900),
+          const SizedBox(width: 5),
+          Text('Secure Notes', 
+              style: GoogleFonts.pattaya(color: Colors.grey[800], fontSize: 30, fontWeight: FontWeight.bold)),
+        ],
+      ),
       backgroundColor: Colors.transparent,
       elevation: 0,
       flexibleSpace: Container(
@@ -122,10 +130,11 @@ class _NotesListScreenState extends State<NotesListScreen> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.delete_outline, color: Color(0xFFffffff),),
-          tooltip: 'Delete All',
+          icon: Icon(Icons.delete_sweep, color: Colors.grey[800], fontWeight: FontWeight.bold, size: 28),
+          tooltip: 'Delete All Notes',          
           onPressed: _notes.isEmpty ? null : _confirmDeleteAll,
         ),
+        SizedBox(width: 12),
       ],
     ),
     body: Stack(
@@ -136,7 +145,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
             padding: const EdgeInsets.only(bottom: 50),
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/bg_app.jpg'),
+                image: AssetImage('assets/images/bluebg.jpg'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -150,8 +159,8 @@ class _NotesListScreenState extends State<NotesListScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withValues(alpha:0.4),  
-                  Colors.black.withValues(alpha:0.6),
+                  Colors.black.withValues(alpha:0.2),  
+                  Colors.black.withValues(alpha:0.1),
                 ],
               ),
             ),
@@ -180,16 +189,11 @@ class _NotesListScreenState extends State<NotesListScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.lightbulb_outline, size: 80, color: Colors.grey[400]),
+                  Icon(Icons.list_sharp, size: 80, color: Colors.grey[900]),
                   const SizedBox(height: 16),
-                  Text('No notes yet', style: Theme.of(context).textTheme.headlineSmall),
+                  Text('No notes yet', style: GoogleFonts.inconsolata(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.grey[900])),
                   const SizedBox(height: 8),
-                  ElevatedButton.icon(
-                    onPressed: () => _addOrEditNote(),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Create First Note'),
-                  ),
-                ],
+                  Text('Tap the + button to add your first note', style: GoogleFonts.inconsolata(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[900])),],
               ),
             )
           : ReorderableListView(
@@ -210,7 +214,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
     confirmDismiss: (_) async => await _confirmSingleDelete(note),
     child: Card(
       // elevation: 4,
-      color: Colors.white.withValues(alpha: 0.9),
+      color: Colors.white.withValues(alpha: 0.8),
       margin: const EdgeInsets.only(bottom: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       child: ListTile(
@@ -236,7 +240,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
         ),
         trailing: PopupMenuButton<IconData>(
           icon: const Icon(Icons.more_vert),
-          color: Colors.white.withValues(alpha:0.9),  // ← background color
+          color: Colors.white.withValues(alpha:0.8),  // ← background color
           elevation: 8,
           onSelected: (action) {
             if (action == Icons.edit) _addOrEditNote(existing: note);
